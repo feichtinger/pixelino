@@ -53,6 +53,8 @@ void Tetris::onStart() {
 	gameover = false;
 	pause = false;
 	blink = true;
+	score = 0;
+	scoreDisplayed = 0;
 
 	// clear heap
 	for (int y = 0; y < DISPLAY_HEIGHT; y++) {
@@ -63,6 +65,8 @@ void Tetris::onStart() {
 
 	lastTime_ms = 0;
 	interval_ms = 1000;
+	lastBlinkTime_ms = 0;
+	lastScoreTime_ms = 0;
 
 	placeNext();
 }
@@ -75,15 +79,28 @@ void Tetris::onStop() {
 void Tetris::tick(uint32_t time_ms) {
 
 	if(gameover){
+
+		// score display animation
+		if(lastScoreTime_ms == 0){
+			lastScoreTime_ms = time_ms;
+		}
+
+		if(time_ms > lastScoreTime_ms + SCORE_INTERVAL){
+			lastScoreTime_ms += SCORE_INTERVAL;
+			if(scoreDisplayed < score)
+			{
+				scoreDisplayed++;
+			}
+		}
 		return;
 	}
 
-	if(lastBlinkTime == 0){
-		lastBlinkTime = time_ms;
+	if(lastBlinkTime_ms == 0){
+		lastBlinkTime_ms = time_ms;
 	}
 
-	if(time_ms > lastBlinkTime + BLINK_INTERVAL){
-		lastBlinkTime += BLINK_INTERVAL;
+	if(time_ms > lastBlinkTime_ms + BLINK_INTERVAL){
+		lastBlinkTime_ms += BLINK_INTERVAL;
 		blink = !blink;
 	}
 
@@ -102,10 +119,10 @@ void Tetris::tick(uint32_t time_ms) {
 		}
 
 		// check for white lines
-		bool whiteLines = false;
+		uint8_t whiteLines = 0;
 		for(size_t y = 0; y < DISPLAY_HEIGHT; y++){
 			if(heap[y][0] == WHITE){
-				whiteLines = true;
+				whiteLines++;
 
 				// copy lines down
 				for(int yy = y - 1; yy >= 0; yy--){
@@ -122,7 +139,26 @@ void Tetris::tick(uint32_t time_ms) {
 				interval_ms *= 0.95;	// for every white line reduce interval by 2%
 			}
 		}
-		if(whiteLines){
+
+		// score
+		if(whiteLines == 1)
+		{
+			score += 1;
+		}
+		if(whiteLines == 2)
+		{
+			score += 3;
+		}
+		if(whiteLines == 3)
+		{
+			score += 5;
+		}
+		if(whiteLines == 4)
+		{
+			score += 8;
+		}
+
+		if(whiteLines > 0){
 			return;
 		}
 
@@ -180,8 +216,7 @@ void Tetris::tick(uint32_t time_ms) {
 				}
 
 				// mark complete row white
-				if(rowComplete)
-				{
+				if(rowComplete){
 					for(size_t x = 0; x < DISPLAY_WIDTH; x++){
 						heap[y][x] = WHITE;
 					}
@@ -211,25 +246,47 @@ void Tetris::draw() {
 
 	Color canvas[DISPLAY_HEIGHT][DISPLAY_WIDTH];
 
-	// draw heap
-	for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-		for (int x = 0; x < DISPLAY_WIDTH; x++) {
-			canvas[y][x] = heap[y][x];
-		}
-	}
-
-	// draw tetromino
-	if(!pause || blink){
-		for(size_t i = 0; i < TETRA; i++)
-		{
-			int8_t x = tetromino[i].x + currentPos.x;
-			int8_t y = tetromino[i].y + currentPos.y;
-
-			if( x >= 0 && y >= 0 && x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT)
-			{
-				canvas[y][x] = currentColor;
+	if(gameover){
+		
+		// draw score
+		uint8_t count = 0;
+		for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+			for (int x = 0; x < DISPLAY_WIDTH; x++) {
+				if(scoreDisplayed > count)
+				{
+					canvas[y][x] = WHITE;
+					count++;
+				}
+				else
+				{
+					canvas[y][x] = BLACK;
+				}
 			}
 		}
+	}
+	else{
+
+		// draw heap
+		for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+			for (int x = 0; x < DISPLAY_WIDTH; x++) {
+				canvas[y][x] = heap[y][x];
+			}
+		}
+
+		// draw tetromino
+		if(!pause || blink){
+			for(size_t i = 0; i < TETRA; i++)
+			{
+				int8_t x = tetromino[i].x + currentPos.x;
+				int8_t y = tetromino[i].y + currentPos.y;
+
+				if( x >= 0 && y >= 0 && x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT)
+				{
+					canvas[y][x] = currentColor;
+				}
+			}
+		}
+
 	}
 
 	// bulk copy canvas into display buffer (one call instead of 64 setPixel calls)

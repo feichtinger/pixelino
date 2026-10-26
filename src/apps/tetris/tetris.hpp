@@ -1,6 +1,5 @@
 /**
  * @brief Tetris
- * 
  */
 
 #pragma once
@@ -15,6 +14,7 @@ namespace pixelino::apps::tetris {
 #define N_TETROMINOS	7
 #define TETRA			4
 #define BLINK_INTERVAL	200
+#define SCORE_INTERVAL	100
 
 class Tetris : public app::IApplication {
 public:
@@ -66,13 +66,17 @@ private:
 	uint32_t lastTime_ms;									// last timestamp an interval was triggered
 	uint32_t interval_ms;									// interval time (gets faster the longer you play)
 
-	bool gameover;
-	bool pause;
-	bool blink;
-	uint32_t lastBlinkTime;
+	bool gameover;											// true whan game is over
+	bool pause;												// true when pause mode is activated
+	bool blink;												// used in pause-mode only, true when blinking tetromino is shown
+	uint32_t lastBlinkTime_ms;								// used for blinking tetromino
 
 	std::vector<size_t> tetrominoPool;						// the next tetromino is randomly selected from this pool
 															// when the pool is used up, it is filled again
+
+	uint8_t score;											// number of points aquired, based on number of full rows
+	uint8_t scoreDisplayed;									// number of score points displayed
+	uint32_t lastScoreTime_ms;								// used for score display
 
 };
 

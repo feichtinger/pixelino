@@ -17,7 +17,16 @@ A classic game, implemented for the Pixelino. Place the falling tetrominos into 
 * B:      rotate counter-clockwise
 * Select: pause / resume
 
+## Scoring
+* 1 row         : 1 point
+* 2 rows at once: 3 points
+* 3 rows at once: 5 points
+* 4 rows at once: 8 points
+
 ## Tips
 * On the 8x8 display it gets tight quickly. Try to keep your heap low. Think fast and be precise. Errors are hard to fix later.
 
 * All 7 types of tetrominos appear with the same propability. However they are not selected purely random but will come in rounds. If you closely observe the appearing tetrominos you can make your predictions what comes next.
+
+## Version History
+* 2026-10-26: added scoring
